@@ -4,28 +4,28 @@ from jwt import decode, InvalidTokenError, DecodeError, get_unverified_header
 import sys
 from tqdm import tqdm
 
+
 def is_jwt(jwt):
     parts = jwt.split(".")
-    if len(parts) != 3:
-        return False
-
-    return True
+    return len(parts) == 3
 
 
 def read_jwt(jwt):
     if not is_jwt(jwt):
-        with open(jwt) as fp:
+        with open(jwt, "r", encoding="utf-8", errors="ignore") as fp:
             jwt = fp.read().strip()
 
     if not is_jwt(jwt):
-        raise RuntimeError("Parameter %s is not a valid JWT" % jwt)
+        raise RuntimeError(f"Parameter {jwt} is not a valid JWT")
 
     return jwt
 
 
 def crack_jwt(jwt, dictionary):
     header = get_unverified_header(jwt)
-    with open(dictionary) as fp:
+
+    # FIX: read dictionary in latin-1 and ignore errors
+    with open(dictionary, "r", encoding="latin-1", errors="ignore") as fp:
         for secret in tqdm(fp):
             secret = secret.rstrip()
 
@@ -34,9 +34,9 @@ def crack_jwt(jwt, dictionary):
                 return secret
             except DecodeError:
                 # Signature verification failed
-                pass
+                continue
             except InvalidTokenError:
-                # Signature correct, something else failed
+                # Signature correct but payload invalid: still good
                 return secret
 
 
@@ -47,7 +47,7 @@ def signature_is_supported(jwt):
 
 def main(argv):
     if len(argv) != 3:
-        print("Usage: %s [JWT or JWT filename] [dictionary filename] " % argv[0])
+        print(f"Usage: {argv[0]} [JWT or JWT filename] [dictionary filename]")
         return
 
     jwt = read_jwt(argv[1])
@@ -55,7 +55,7 @@ def main(argv):
         print("Error: This JWT does not use a supported signing algorithm")
         return
 
-    print("Cracking JWT %s" % jwt)
+    print(f"Cracking JWT {jwt}")
     result = crack_jwt(jwt, argv[2])
     if result:
         print("Found secret key:", result)
