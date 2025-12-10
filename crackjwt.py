@@ -58,7 +58,9 @@ def main(argv):
     print(f"Cracking JWT {jwt}")
     result = crack_jwt(jwt, argv[2])
     if result:
+        print("="*40)
         print("Found secret key:", result)
+        print("="*40)
     else:
         print("Key not found")
 
