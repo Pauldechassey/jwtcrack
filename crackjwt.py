@@ -48,6 +48,7 @@ def signature_is_supported(jwt):
 def main(argv):
     if len(argv) != 3:
         print(f"Usage: {argv[0]} [JWT or JWT filename] [dictionary filename]")
+        print("example : ./crackjwt.py JWT /usr/share/wordlists/scraped-JWT-secrets.txt")
         return
 
     jwt = read_jwt(argv[1])
